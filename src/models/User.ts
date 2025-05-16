@@ -1,0 +1,31 @@
+import mongoose, { Schema, Document } from "mongoose";
+
+export interface IUser extends Document {
+  email: String;
+  password: String;
+  name: String;
+  confirmed: Boolean;
+}
+
+const UserSchema: Schema = new Schema({
+  email: {
+    type: String,
+    required: true,
+    lowercase: true,
+    unique: true,
+  },
+  password: {
+    type: String,
+    required: true,
+  },
+  name: {
+    type: String,
+    required: true,
+  },
+  confirmed: {
+    type: Boolean,
+    default: false,
+  },
+});
+
+export default mongoose.model<IUser>("User", UserSchema);

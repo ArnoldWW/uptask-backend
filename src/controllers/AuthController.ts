@@ -3,7 +3,7 @@ import { Types } from "mongoose";
 import User from "../models/User";
 import Token from "../models/Token";
 
-import { hashPassword } from "../utils/auth";
+import { hashPassword, comparePassword } from "../utils/auth";
 import { generateToken } from "../utils/token";
 import { AuthEmail } from "../emails/AuthEmail";
 
@@ -82,6 +82,53 @@ export class AuthController {
     } catch (error) {
       console.error("Error confirming account:", error);
       return res.status(500).json({ error: "Error al confirmar la cuenta" });
+    }
+  }
+
+  // Method to login
+  static async login(req: Request, res: Response) {
+    try {
+      const { email, password } = req.body;
+
+      //check if the user exists
+      const user = await User.findOne({ email });
+      if (!user) {
+        return res.status(404).json({
+          error: "Usuario no encontrado"
+        });
+      }
+
+      //check if the user is confirmed
+      if (!user.confirmed) {
+        //create a new token
+        const token = new Token();
+        token.user = user._id as Types.ObjectId;
+        token.token = generateToken();
+        await token.save();
+
+        //send email
+        AuthEmail.sendConfirmationEmail({
+          email: user.email,
+          name: user.name,
+          token: token.token
+        });
+
+        return res.status(401).json({
+          error:
+            "La cuenta no ha sido confirmada, te hemos enviado un nuevo correo con el token de confirmación"
+        });
+      }
+
+      //check if the password is correct
+      const isMatch = await comparePassword(password, user.password);
+      if (!isMatch) {
+        return res.status(401).json({ error: "Contraseña incorrecta" });
+      }
+
+      res.send("Autenticación correcta");
+    } catch (error) {
+      console.error("Error logging in:", error);
+      return res.status(500).json({ error: "Error al iniciar sesión" });
     }
   }
 }

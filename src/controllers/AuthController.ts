@@ -36,13 +36,15 @@ export class AuthController {
       AuthEmail.sendConfirmationEmail({
         email: newUser.email,
         name: newUser.name,
-        token: token.token
+        token: token.token,
       });
 
       // Insert user into the database
-      await Promise.all([newUser.save(), token.save()]);
+      await Promise.allSettled([newUser.save(), token.save()]);
 
-      return res.status(201).json({ message: "Cuenta creada correctamente" });
+      return res.send(
+        "Cuenta creada correctamente, revisa tu correo para confirmar la cuenta",
+      );
     } catch (error) {
       console.error("Error creating account:", error);
       return res.status(500).json({ error: "Error al crear la cuenta" });
@@ -94,7 +96,7 @@ export class AuthController {
       const user = await User.findOne({ email });
       if (!user) {
         return res.status(404).json({
-          error: "Usuario no encontrado"
+          error: "Usuario no encontrado",
         });
       }
 
@@ -110,12 +112,12 @@ export class AuthController {
         AuthEmail.sendConfirmationEmail({
           email: user.email,
           name: user.name,
-          token: token.token
+          token: token.token,
         });
 
         return res.status(401).json({
           error:
-            "La cuenta no ha sido confirmada, te hemos enviado un nuevo correo con el token de confirmación"
+            "La cuenta no ha sido confirmada, te hemos enviado un nuevo correo con el token de confirmación",
         });
       }
 

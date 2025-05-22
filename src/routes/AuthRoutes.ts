@@ -5,6 +5,7 @@ import { handleInputErrors } from "../middleware/validation";
 
 const router = Router();
 
+// Route to create a new account
 router.post(
   "/create-account",
   body("name").trim().notEmpty().withMessage("El nombre es obligatorio"),
@@ -22,6 +23,14 @@ router.post(
   body("email").isEmail().withMessage("Correo electronico no válido"),
   handleInputErrors,
   AuthController.createAccount
+);
+
+// Route to confirm account
+router.post(
+  "/confirm-account",
+  body("token").trim().notEmpty().withMessage("El token es obligatorio"),
+  handleInputErrors,
+  AuthController.confirmAccount
 );
 
 export default router;

@@ -5,9 +5,10 @@ import Token from "../models/Token";
 
 import { hashPassword } from "../utils/auth";
 import { generateToken } from "../utils/token";
-import { transport } from "../config/nodemailer";
+import { AuthEmail } from "../emails/AuthEmail";
 
 export class AuthController {
+  // Method to confirm account
   static async createAccount(req: Request, res: Response) {
     try {
       const { password, email } = req.body;
@@ -28,21 +29,14 @@ export class AuthController {
 
       //generate a token
       const token = new Token();
-      token.token = generateToken(32);
+      token.token = generateToken();
       token.user = newUser._id as Types.ObjectId;
 
       //send email
-      await transport.sendMail({
-        from: "uptask@correo.com",
-        to: newUser.email.toString(),
-        subject: "Confirmación de cuenta",
-        html: `
-          <h1>Bienvenido a Uptask</h1>
-          <p>Hola ${newUser.name}, Para confirmar tu cuenta, haz click en el siguiente enlace:</p>
-          <p><a href="#">Confirmar cuenta</a></p>
-          <p>¡Gracias por usar Uptask!</p>
-          <p>El equipo de Uptask</p>
-        `
+      AuthEmail.sendConfirmationEmail({
+        email: newUser.email,
+        name: newUser.name,
+        token: token.token
       });
 
       // Insert user into the database
@@ -52,6 +46,42 @@ export class AuthController {
     } catch (error) {
       console.error("Error creating account:", error);
       return res.status(500).json({ error: "Error al crear la cuenta" });
+    }
+  }
+
+  // Method to confirm account
+  static async confirmAccount(req: Request, res: Response) {
+    try {
+      const { token } = req.body;
+      console.log("Token: ", token);
+
+      //check if the token exists
+      const tokenExists = await Token.findOne({ token });
+
+      if (!tokenExists) {
+        return res
+          .status(401)
+          .json({ error: "El token no existe o ha caducado" });
+      }
+
+      //Search for the user with the token
+      const user = await User.findById(tokenExists.user);
+
+      //check if the user exists
+      if (!user) {
+        return res
+          .status(401)
+          .json({ error: "El usuario no existe o ha caducado" });
+      }
+
+      user.confirmed = true;
+
+      //save the user and delete the token
+      await Promise.all([user.save(), tokenExists.deleteOne()]);
+      res.send("Cuenta confirmada correctamente");
+    } catch (error) {
+      console.error("Error confirming account:", error);
+      return res.status(500).json({ error: "Error al confirmar la cuenta" });
     }
   }
 }

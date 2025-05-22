@@ -2,10 +2,10 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export interface IUser extends Document {
   id;
-  email: String;
-  password: String;
-  name: String;
-  confirmed: Boolean;
+  email: string;
+  password: string;
+  name: string;
+  confirmed: boolean;
 }
 
 const UserSchema: Schema = new Schema({

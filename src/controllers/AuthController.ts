@@ -195,6 +195,22 @@ export class AuthController {
         });
       }
 
+      //check if the user is confirmed
+      if (!user.confirmed) {
+        return res.status(403).json({
+          error: "La cuenta no ha sido confirmada"
+        });
+      }
+
+      //validate if there is a token in the database
+      const tokenExists = await Token.findOne({ user: user._id });
+
+      if (tokenExists) {
+        return res.status(400).json({
+          error: "Ya tienes activo un token para restablecer la contraseña"
+        });
+      }
+
       //generate a new token
       const token = new Token();
       token.token = generateToken();

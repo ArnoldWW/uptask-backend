@@ -15,10 +15,10 @@ const tokenSchema: Schema = new Schema({
     type: Schema.Types.ObjectId,
     ref: "User"
   },
-  createdAt: {
+  expiresAt: {
     type: Date,
-    default: Date.now(),
-    expires: "10m"
+    default: () => Date.now() + 10 * 60 * 1000, // 10 minutos en el futuro
+    expires: 0
   }
 });
 

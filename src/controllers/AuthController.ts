@@ -180,4 +180,44 @@ export class AuthController {
         .json({ error: "Error al solicitar un nuevo token" });
     }
   }
+
+  // Method to reset password
+  static async forgotPassword(req: Request, res: Response) {
+    try {
+      const { email } = req.body;
+
+      const user = await User.findOne({ email });
+
+      //check if the user exists
+      if (!user) {
+        return res.status(404).json({
+          error: "Usuario no encontrado"
+        });
+      }
+
+      //generate a new token
+      const token = new Token();
+      token.token = generateToken();
+      token.user = user._id as Types.ObjectId;
+
+      //save the token in the database
+      await token.save();
+
+      //send email
+      AuthEmail.sendResetPasswordEmail({
+        email: user.email,
+        name: user.name,
+        token: token.token
+      });
+
+      return res.send(
+        "Revisa tu correo electronico para restablecer la contraseña"
+      );
+    } catch (error) {
+      console.error("Error requesting new token:", error);
+      return res
+        .status(500)
+        .json({ error: "Error al solicitar un nuevo token" });
+    }
+  }
 }

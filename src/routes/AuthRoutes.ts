@@ -50,4 +50,12 @@ router.post(
   AuthController.requestNewConfirmationToken
 );
 
+// Route to send email with reset password token
+router.post(
+  "/forgot-password",
+  body("email").trim().isEmail().withMessage("Correo electronico no válido"),
+  handleInputErrors,
+  AuthController.forgotPassword
+);
+
 export default router;

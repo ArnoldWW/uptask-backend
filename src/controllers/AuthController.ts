@@ -36,14 +36,14 @@ export class AuthController {
       AuthEmail.sendConfirmationEmail({
         email: newUser.email,
         name: newUser.name,
-        token: token.token,
+        token: token.token
       });
 
       // Insert user into the database
       await Promise.allSettled([newUser.save(), token.save()]);
 
       return res.send(
-        "Cuenta creada correctamente, revisa tu correo para confirmar la cuenta",
+        "Cuenta creada correctamente, revisa tu correo para confirmar la cuenta"
       );
     } catch (error) {
       console.error("Error creating account:", error);
@@ -96,7 +96,7 @@ export class AuthController {
       const user = await User.findOne({ email });
       if (!user) {
         return res.status(404).json({
-          error: "Usuario no encontrado",
+          error: "Usuario o contraseña incorrecta"
         });
       }
 
@@ -112,25 +112,72 @@ export class AuthController {
         AuthEmail.sendConfirmationEmail({
           email: user.email,
           name: user.name,
-          token: token.token,
+          token: token.token
         });
 
         return res.status(401).json({
           error:
-            "La cuenta no ha sido confirmada, te hemos enviado un nuevo correo con el token de confirmación",
+            "La cuenta no ha sido confirmada, te hemos enviado un nuevo correo con el token de confirmación"
         });
       }
 
       //check if the password is correct
       const isMatch = await comparePassword(password, user.password);
       if (!isMatch) {
-        return res.status(401).json({ error: "Contraseña incorrecta" });
+        return res
+          .status(401)
+          .json({ error: "Usuario o contraseña incorrecta" });
       }
 
       res.send("Autenticación correcta");
     } catch (error) {
       console.error("Error logging in:", error);
       return res.status(500).json({ error: "Error al iniciar sesión" });
+    }
+  }
+
+  // Method to request a new token
+  static async requestNewConfirmationToken(req: Request, res: Response) {
+    try {
+      const { email } = req.body;
+
+      const user = await User.findOne({ email });
+
+      //check if the user exists
+      if (!user) {
+        return res.status(404).json({
+          error: "Usuario no encontrado"
+        });
+      }
+
+      //check if the user is confirmed
+      if (user.confirmed) {
+        return res.status(403).json({
+          error: "La cuenta ya ha sido confirmada"
+        });
+      }
+
+      //generate a new token
+      const token = new Token();
+      token.token = generateToken();
+      token.user = user._id as Types.ObjectId;
+
+      //send email
+      AuthEmail.sendConfirmationEmail({
+        email: user.email,
+        name: user.name,
+        token: token.token
+      });
+
+      //save the token and user in the database
+      await Promise.allSettled([token.save(), user.save()]);
+
+      return res.send("Se ha enviado un nuevo token a tu correo electronico");
+    } catch (error) {
+      console.error("Error requesting new token:", error);
+      return res
+        .status(500)
+        .json({ error: "Error al solicitar un nuevo token" });
     }
   }
 }

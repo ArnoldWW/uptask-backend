@@ -236,4 +236,64 @@ export class AuthController {
         .json({ error: "Error al solicitar un nuevo token" });
     }
   }
+
+  // Method to validate token for new password
+  static async validateToken(req: Request, res: Response) {
+    try {
+      const { token } = req.body;
+
+      //check if the token exists
+      const tokenExists = await Token.findOne({ token });
+      console.log("Token: ", tokenExists);
+
+      if (!tokenExists) {
+        return res
+          .status(401)
+          .json({ error: "El token no existe o ha caducado" });
+      }
+
+      res.send("Token valido");
+    } catch (error) {
+      console.error("Error validating token:", error);
+      return res.status(500).json({ error: "Error al validar el token" });
+    }
+  }
+
+  // Method to update password
+  static async updatePasswordWithToken(req: Request, res: Response) {
+    try {
+      const { password } = req.body;
+      const { token } = req.params;
+
+      // check if the token exists
+      const tokenExists = await Token.findOne({ token });
+
+      if (!tokenExists) {
+        return res
+          .status(401)
+          .json({ error: "El token no existe o ha caducado" });
+      }
+
+      // search for the user with the token
+      const user = await User.findById(tokenExists.user);
+
+      // check if the user exists
+      if (!user) {
+        return res.status(401).json({ error: "El usuario no existe" });
+      }
+
+      // update the password
+      user.password = await hashPassword(password);
+
+      //save the user with new pasword and delete the token
+      await Promise.allSettled([user.save(), tokenExists.deleteOne()]);
+
+      res.send("Contraseña actualizada correctamente");
+    } catch (error) {
+      console.error("Error updating password:", error);
+      return res
+        .status(500)
+        .json({ error: "Error al actualizar la contraseña" });
+    }
+  }
 }

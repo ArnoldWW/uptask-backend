@@ -27,7 +27,6 @@ export async function authenticate(
   try {
     // Verify the token
     const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
-    console.log("decoded", decoded);
 
     // Check if the decoded token is an object and has an id property
     if (typeof decoded === "object" && decoded.id) {

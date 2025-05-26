@@ -300,4 +300,9 @@ export class AuthController {
         .json({ error: "Error al actualizar la contraseña" });
     }
   }
+
+  // Method to get authenticated user
+  static async getAuthenticatedUser(req: Request, res: Response) {
+    return res.json(req.user);
+  }
 }

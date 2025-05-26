@@ -6,6 +6,7 @@ import Token from "../models/Token";
 import { hashPassword, comparePassword } from "../utils/auth";
 import { generateToken } from "../utils/token";
 import { AuthEmail } from "../emails/AuthEmail";
+import { generateJWT } from "../utils/jwt";
 
 export class AuthController {
   // Method to confirm account
@@ -129,7 +130,10 @@ export class AuthController {
           .json({ error: "Usuario o contraseña incorrecta" });
       }
 
-      res.send("Autenticación correcta");
+      //generate a JWT token
+      const jwt = generateJWT({ id: user._id });
+
+      res.send(jwt);
     } catch (error) {
       console.error("Error logging in:", error);
       return res.status(500).json({ error: "Error al iniciar sesión" });

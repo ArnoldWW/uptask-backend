@@ -16,7 +16,7 @@ export class AuthEmail {
         subject: "UPTASK - Confirmación de cuenta",
         html: `
           <h1>Bienvenido a Uptask</h1>
-          <p>Hola ${user.name}, Para confirmar tu cuenta, haz click en el siguiente enlace e ingresa el siguiente token:
+          <p>Hola ${user.name}; Para confirmar tu cuenta, haz click en el siguiente enlace e ingresa el siguiente token:
             <strong>${user.token}</strong>
           </p>
           <p><a href="${process.env.FRONTEND_URL}/auth/confirm-account">Confirmar cuenta</a></p>
@@ -40,8 +40,8 @@ export class AuthEmail {
         to: user.email.toString(),
         subject: "UPTASK - Restablecer contraseña",
         html: `
-          <h1>Reset Password</h1>
-          <p>Hola ${user.name} Para resetear tu contraseña, haz click en el siguiente enlace e ingresa el siguiente token: 
+          <h1>Restablecer contraseña</h1>
+          <p>Hola ${user.name}; Para resetear tu contraseña, haz click en el siguiente enlace e ingresa el siguiente token: 
             <strong>${user.token}</strong>
           </p>
           <p><a href="${process.env.FRONTEND_URL}/auth/new-password">Restablecer contraseña</a></p>

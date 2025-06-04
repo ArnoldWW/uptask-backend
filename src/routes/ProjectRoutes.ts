@@ -6,11 +6,14 @@ import { authenticate } from "../middleware/auth";
 import { TaskController } from "../controllers/TaskConroller";
 import { validateProjectExists } from "../middleware/project";
 import { taskBelongToProject, taskExists } from "../middleware/task";
+import { TeamController } from "../controllers/TeamController";
 
 const router = Router();
 
 // Protect all routes in this router
 router.use(authenticate);
+
+// ---------------- ROUTES FOR PROJECT MANAGEMENT -------------------
 
 // Route to create a new project
 router.post(
@@ -110,5 +113,39 @@ router.post(
   handleInputErrors,
   TaskController.updateStatus
 );
+
+// ---------------- ROUTES FOR TEAM MANAGEMENT -------------------
+
+// Get all team members of a project
+router.get(
+  "/:projectId/team",
+  validateProjectExists,
+  TeamController.getProjectTeam
+);
+
+// Find team members of a project
+router.post(
+  "/:projectId/team/find",
+  body("email").isEmail().toLowerCase().withMessage("El email es obligatorio"),
+  handleInputErrors,
+  TeamController.findMemberByEmail
+);
+
+// Add a member to the project team
+router.post(
+  "/:projectId/team",
+  body("id").isMongoId().withMessage("ID no valido"),
+  handleInputErrors,
+  TeamController.addMemberToTeam
+);
+
+// Remove a member from the project team
+router.delete(
+  "/:projectId/team",
+  body("id").isMongoId().withMessage("ID no valido"),
+  handleInputErrors,
+  TeamController.removeMemberFromTeam
+);
+
 
 export default router;

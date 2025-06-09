@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import Project from "../models/Project";
 
 export class ProjectController {
+  // Method to create a new project
   static createProject = async (req: Request, res: Response) => {
     const project = new Project(req.body);
 
@@ -16,11 +17,12 @@ export class ProjectController {
     }
   };
 
+  // Method to get all projects
   static getAllProjects = async (req: Request, res: Response) => {
     try {
       // Fetch all projects from the database by user ID
       const projects = await Project.find({
-        $or: [{ manager: req.user?.id }]
+        $or: [{ manager: req.user?.id }, { team: req.user?.id }],
       });
 
       //const projects = await Project.find({ manager: req.user?.id });
@@ -31,6 +33,7 @@ export class ProjectController {
     }
   };
 
+  // Method to get a project by ID
   static getProjectByID = async (req: Request, res: Response) => {
     const { id } = req.params;
 
@@ -43,7 +46,10 @@ export class ProjectController {
       }
 
       // Check if the project belongs to the user
-      if (project.manager.toString() !== req.user?.id.toString()) {
+      if (
+        project.manager.toString() !== req.user?.id.toString() &&
+        !project.team.includes(req.user?.id)
+      ) {
         const error = new Error("Accion no valida");
         return res.status(403).json({ error: error.message });
       }
@@ -54,6 +60,7 @@ export class ProjectController {
     }
   };
 
+  // Method to update a project by ID
   static updateProject = async (req: Request, res: Response) => {
     const { id } = req.params;
 
@@ -82,6 +89,7 @@ export class ProjectController {
     }
   };
 
+  // Method to delete a project by ID
   static deleteProject = async (req: Request, res: Response) => {
     const { id } = req.params;
 

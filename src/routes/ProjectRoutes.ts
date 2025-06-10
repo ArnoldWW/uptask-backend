@@ -5,7 +5,11 @@ import { handleInputErrors } from "../middleware/validation";
 import { authenticate } from "../middleware/auth";
 import { TaskController } from "../controllers/TaskConroller";
 import { validateProjectExists } from "../middleware/project";
-import { taskBelongToProject, taskExists } from "../middleware/task";
+import {
+  hasAuthorizationForManageTask,
+  taskBelongToProject,
+  taskExists
+} from "../middleware/task";
 import { TeamController } from "../controllers/TeamController";
 
 const router = Router();
@@ -59,7 +63,9 @@ router.delete(
   ProjectController.deleteProject
 );
 
-/* Routes for task */
+// ---------------- ROUTES FOR TASK MANAGEMENT -------------------
+
+// Routes
 router.param("projectId", validateProjectExists);
 router.param("taskId", taskExists);
 router.param("taskId", taskBelongToProject);
@@ -89,10 +95,10 @@ router.get(
 // Route to update a task
 router.put(
   "/:projectId/tasks/:taskId",
+  hasAuthorizationForManageTask,
   param("taskId").isMongoId().withMessage("ID no valido"),
   body("name").notEmpty().withMessage("El nombre es obligatorio"),
   body("description").notEmpty().withMessage("La descripcion es obligatoria"),
-  handleInputErrors,
   handleInputErrors,
   TaskController.updateTask
 );
@@ -100,6 +106,7 @@ router.put(
 // Route to delete a task
 router.delete(
   "/:projectId/tasks/:taskId",
+  hasAuthorizationForManageTask,
   param("taskId").isMongoId().withMessage("ID no valido"),
   handleInputErrors,
   TaskController.deleteTask

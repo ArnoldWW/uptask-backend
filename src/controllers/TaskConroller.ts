@@ -18,7 +18,7 @@ export class TaskController {
   static getProjectTasks = async (req: Request, res: Response) => {
     try {
       const tasks = await Task.find({ project: req.project.id }).populate(
-        "project",
+        "project"
       );
 
       res.json(tasks);
@@ -29,10 +29,18 @@ export class TaskController {
 
   static getTaskById = async (req: Request, res: Response) => {
     try {
-      const task = await Task.findById(req.task.id).populate({
-        path: "completedBy.user",
-        select: "id name email",
-      });
+      const task = await Task.findById(req.task.id)
+        .populate({
+          path: "completedBy.user",
+          select: "id name email"
+        })
+        .populate({
+          path: "notes",
+          populate: {
+            path: "createdBy",
+            select: "id name email"
+          }
+        });
 
       if (task.project.toString() !== req.project.id) {
         const error = new Error("Acción no válida");
@@ -84,7 +92,7 @@ export class TaskController {
       // Add the user to the completedBy field
       task.completedBy.push({
         user: user.id,
-        status: status,
+        status: status
       });
 
       // Update the status field of the task

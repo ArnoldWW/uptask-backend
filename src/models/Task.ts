@@ -5,7 +5,7 @@ const taksStatus = {
   ON_HOLD: "onHold",
   IN_PROGRESS: "inProgress",
   UNDER_REVIEW: "underReview",
-  COMPLETED: "completed",
+  COMPLETED: "completed"
 } as const;
 
 export type TaskStatus = (typeof taksStatus)[keyof typeof taksStatus];
@@ -19,6 +19,7 @@ export interface ITask extends Document {
     user: Types.ObjectId;
     status: TaskStatus;
   }[];
+  notes: Types.ObjectId[];
 }
 
 export const TaskSchema: Schema = new Schema(
@@ -26,37 +27,43 @@ export const TaskSchema: Schema = new Schema(
     name: {
       type: String,
       trim: true,
-      require: true,
+      require: true
     },
     description: {
       type: String,
       trim: true,
-      require: true,
+      require: true
     },
     project: {
       type: Types.ObjectId,
-      ref: "Project",
+      ref: "Project"
     },
     status: {
       type: String,
       enum: Object.values(taksStatus),
-      default: taksStatus.PENDING,
+      default: taksStatus.PENDING
     },
     completedBy: [
       {
         user: {
           type: Types.ObjectId,
-          ref: "User",
+          ref: "User"
         },
         status: {
           type: String,
           enum: Object.values(taksStatus),
-          default: taksStatus.PENDING,
-        },
-      },
+          default: taksStatus.PENDING
+        }
+      }
     ],
+    notes: [
+      {
+        type: Types.ObjectId,
+        ref: "Note"
+      }
+    ]
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
 const Task = mongoose.model<ITask>("Task", TaskSchema);

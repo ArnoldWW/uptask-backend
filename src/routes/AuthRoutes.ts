@@ -123,4 +123,13 @@ router.post(
   AuthController.updatePasswordOfAuthenticatedUser,
 );
 
+// Route to check password when you want delete a project
+router.post(
+  "/check-password",
+  authenticate,
+  body("password").notEmpty().withMessage("La contraseña es obligatoria"),
+  handleInputErrors,
+  AuthController.checkPassword,
+);
+
 export default router;

@@ -368,4 +368,31 @@ export class AuthController {
         .json({ error: "Error al actualizar la contraseña" });
     }
   }
+
+  // Method to check password of authenticated user
+  static async checkPassword(req: Request, res: Response) {
+    try {
+      const { password } = req.body;
+
+      // Get user from id
+      const user = await User.findById(req.user._id);
+      if (!user) {
+        return res.status(404).json({ error: "Usuario no encontrado" });
+      }
+
+      // Check if the password is correct
+      const isPasswordCorrect = await comparePassword(password, user.password);
+      if (!isPasswordCorrect) {
+        console.error("Contraseña incorrecta");
+        return res.status(400).json({ error: "Contraseña incorrecta" });
+      }
+
+      res.send("Contraseña correcta");
+    } catch (error) {
+      console.error("Error checking password:", error);
+      return res
+        .status(500)
+        .json({ error: "Error al verificar la contraseña" });
+    }
+  }
 }

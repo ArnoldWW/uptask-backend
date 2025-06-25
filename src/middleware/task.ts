@@ -10,7 +10,7 @@ declare global {
   }
 }
 
-// Check if the task exists
+// Middleware to check if the task exists
 export async function taskExists(
   req: Request,
   res: Response,
@@ -33,7 +33,7 @@ export async function taskExists(
   }
 }
 
-// Check if the task belongs to the project
+// Middleware to check if the task belongs to the project
 export async function taskBelongToProject(
   req: Request,
   res: Response,
@@ -42,20 +42,6 @@ export async function taskBelongToProject(
   if (req.task.project.toString() !== req.project.id.toString()) {
     const error = new Error("Acción no válida");
     return res.status(400).json({ error: error.message });
-  }
-
-  next();
-}
-
-// Check if the user can update/delete the task
-export async function hasAuthorizationForManageTask(
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
-  if (req.user.id.toString() !== req.project.manager.toString()) {
-    const error = new Error("No autorizado");
-    return res.status(403).json({ error: error.message });
   }
 
   next();

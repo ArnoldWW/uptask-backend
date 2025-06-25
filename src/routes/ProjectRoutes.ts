@@ -4,12 +4,8 @@ import { body, param } from "express-validator";
 import { handleInputErrors } from "../middleware/validation";
 import { authenticate } from "../middleware/auth";
 import { TaskController } from "../controllers/TaskConroller";
-import { validateProjectExists } from "../middleware/project";
-import {
-  hasAuthorizationForManageTask,
-  taskBelongToProject,
-  taskExists
-} from "../middleware/task";
+import { hasAuthorization, validateProjectExists } from "../middleware/project";
+import { taskBelongToProject, taskExists } from "../middleware/task";
 import { TeamController } from "../controllers/TeamController";
 import { NoteController } from "../controllers/NoteController";
 
@@ -45,28 +41,32 @@ router.get(
 
 // Route to update a project
 router.put(
-  "/:id",
-  param("id").isMongoId().withMessage("ID no valido"),
+  "/:projectId",
+  param("projectId").isMongoId().withMessage("ID no valido"),
   body("projectName").notEmpty().withMessage("El nombre es obligatorio"),
   body("clientName")
     .notEmpty()
     .withMessage("El nombre del cliente es obligatorio"),
   body("description").notEmpty().withMessage("La descripcion es obligatoria"),
   handleInputErrors,
+  validateProjectExists,
+  hasAuthorization,
   ProjectController.updateProject
 );
 
 // Route to delete a project
 router.delete(
-  "/:id",
-  param("id").isMongoId().withMessage("ID no valido"),
+  "/:projectId",
+  param("projectId").isMongoId().withMessage("ID no valido"),
   handleInputErrors,
+  validateProjectExists,
+  hasAuthorization,
   ProjectController.deleteProject
 );
 
 // ---------------- ROUTES FOR TASK MANAGEMENT -------------------
 
-// Routes
+// Middlewares
 router.param("projectId", validateProjectExists);
 router.param("taskId", taskExists);
 router.param("taskId", taskBelongToProject);
@@ -96,7 +96,7 @@ router.get(
 // Route to update a task
 router.put(
   "/:projectId/tasks/:taskId",
-  hasAuthorizationForManageTask,
+  hasAuthorization,
   param("taskId").isMongoId().withMessage("ID no valido"),
   body("name").notEmpty().withMessage("El nombre es obligatorio"),
   body("description").notEmpty().withMessage("La descripcion es obligatoria"),
@@ -107,7 +107,7 @@ router.put(
 // Route to delete a task
 router.delete(
   "/:projectId/tasks/:taskId",
-  hasAuthorizationForManageTask,
+  hasAuthorization,
   param("taskId").isMongoId().withMessage("ID no valido"),
   handleInputErrors,
   TaskController.deleteTask
